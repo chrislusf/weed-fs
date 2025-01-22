@@ -76,6 +76,7 @@ type FilerOption struct {
 	DiskType              string
 	AllowedOrigins        []string
 	ExposeDirectoryData   bool
+	EnableWORMAutoCommit  bool
 }
 
 type FilerServer struct {
@@ -216,9 +217,8 @@ func NewFilerServer(defaultMux, readonlyMux *http.ServeMux, option *FilerOption)
 
 	fs.filer.LoadRemoteStorageConfAndMapping()
 
-	err = fs.filer.StartWormAutoCommitControllerInBackground(ctx)
-	if err != nil {
-		glog.Fatalf("Failed to start WORM auto commit controller: %v", err)
+	if option.EnableWORMAutoCommit {
+		fs.filer.StartWormAutoCommitControllerInBackground(ctx)
 	}
 
 	grace.OnReload(fs.Reload)
