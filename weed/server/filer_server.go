@@ -216,10 +216,7 @@ func NewFilerServer(defaultMux, readonlyMux *http.ServeMux, option *FilerOption)
 
 	fs.filer.LoadRemoteStorageConfAndMapping()
 
-	err = fs.filer.StartWormAutoCommitControllerInBackground(ctx)
-	if err != nil {
-		glog.Fatalf("Failed to start WORM auto commit controller: %v", err)
-	}
+	fs.filer.StartWormAutoCommitControllerInBackground(ctx)
 
 	grace.OnReload(fs.Reload)
 	grace.OnInterrupt(func() {
