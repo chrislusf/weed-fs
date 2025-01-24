@@ -14,25 +14,25 @@ import (
 )
 
 func (f *Filer) maybeCommitAsWORM(entry *Entry) {
-	if f.wormAutoCommitController == nil || entry.WORMEnforcedAtTsNs > 0 {
+	if entry.WORMEnforcedAtTsNs > 0 {
 		return
 	}
 
 	f.wormAutoCommitController.AddItem(entryItem{fullPath: entry.FullPath, mtime: entry.Mtime})
 }
 
-func (f *Filer) StartWormAutoCommitControllerInBackground(ctx context.Context) {
+func (f *Filer) StartWormAutoCommitControllerInBackground(ctx context.Context) error {
 	controller := newWormAutoCommitController(f, nil)
-	go func() {
-		err := controller.loopAllWORMPaths(ctx)
-		if err != nil {
-			// restart the server to try again
-			glog.Fatalf("Failed to loop all WORM paths: %v", err)
-		}
-	}()
+	err := controller.loopAllWORMPaths(ctx)
+	if err != nil {
+		glog.Errorf("Failed to loop all WORM paths: %v", err)
+		return err
+	}
 
 	f.wormAutoCommitController = controller
 	go controller.Run(ctx, 3)
+
+	return nil
 }
 
 type entryItem struct {
